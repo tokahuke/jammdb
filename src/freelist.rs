@@ -20,7 +20,7 @@ pub(crate) struct TxFreelist {
     pub(crate) arena: Bump,
 }
 
-impl<'a> TxFreelist {
+impl TxFreelist {
     pub(crate) fn new(meta: Meta, inner: Freelist) -> TxFreelist {
         TxFreelist {
             meta,
@@ -37,7 +37,7 @@ impl<'a> TxFreelist {
         }
     }
 
-    pub(crate) fn allocate<'b>(&'b mut self, bytes: u64) -> Result<&'a mut Page> {
+    pub(crate) fn allocate<'a>(&mut self, bytes: u64) -> Result<&'a mut Page> {
         assert!(
             bytes >= (size_of::<Page>() as u64),
             "cannot allocate {} bytes, minimum is {}, {}",
@@ -102,7 +102,7 @@ impl Freelist {
             "cannot free page {}, reserved for meta",
             page_id
         );
-        let pages = self.pending_pages.entry(tx_id).or_insert_with(Vec::new);
+        let pages = self.pending_pages.entry(tx_id).or_default();
         pages.push(page_id);
     }
 

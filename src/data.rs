@@ -35,7 +35,7 @@ pub enum Data<'b, 'tx> {
     KeyValue(KVPair<'b, 'tx>),
 }
 
-impl<'b, 'tx> Data<'b, 'tx> {
+impl Data<'_, '_> {
     /// Checks if the `Data` is a `KVPair`
     pub fn is_kv(&self) -> bool {
         matches!(self, Data::KeyValue(_))
@@ -59,7 +59,7 @@ impl<'b, 'tx> Data<'b, 'tx> {
     }
 }
 
-impl<'b, 'tx> From<Leaf<'tx>> for Data<'b, 'tx> {
+impl<'tx> From<Leaf<'tx>> for Data<'_, 'tx> {
     fn from(val: Leaf<'tx>) -> Self {
         match val {
             Leaf::Bucket(name, _) => Data::Bucket(BucketName::new(name)),
@@ -103,7 +103,7 @@ pub struct BucketName<'b, 'tx> {
     _phantom: PhantomData<&'b ()>,
 }
 
-impl<'b, 'tx> BucketName<'b, 'tx> {
+impl<'tx> BucketName<'_, 'tx> {
     pub(crate) fn new(name: Bytes<'tx>) -> Self {
         BucketName {
             name,
@@ -117,13 +117,13 @@ impl<'b, 'tx> BucketName<'b, 'tx> {
     }
 }
 
-impl<'b, 'tx> ToBytes<'tx> for BucketName<'b, 'tx> {
+impl<'tx> ToBytes<'tx> for BucketName<'_, 'tx> {
     fn to_bytes(self) -> Bytes<'tx> {
         self.name
     }
 }
 
-impl<'b, 'tx> ToBytes<'tx> for &BucketName<'b, 'tx> {
+impl<'tx> ToBytes<'tx> for &BucketName<'_, 'tx> {
     fn to_bytes(self) -> Bytes<'tx> {
         self.name.clone()
     }
@@ -166,7 +166,7 @@ pub struct KVPair<'b, 'tx> {
     _phantom: PhantomData<&'b ()>,
 }
 
-impl<'b, 'tx> KVPair<'b, 'tx> {
+impl<'tx> KVPair<'_, 'tx> {
     pub(crate) fn new(key: Bytes<'tx>, value: Bytes<'tx>) -> Self {
         KVPair {
             key,
@@ -191,13 +191,13 @@ impl<'b, 'tx> KVPair<'b, 'tx> {
     }
 }
 
-impl<'b, 'tx> From<(Bytes<'tx>, Bytes<'tx>)> for KVPair<'b, 'tx> {
+impl<'tx> From<(Bytes<'tx>, Bytes<'tx>)> for KVPair<'_, 'tx> {
     fn from(val: (Bytes<'tx>, Bytes<'tx>)) -> Self {
         KVPair::new(val.0, val.1)
     }
 }
 
-impl<'b, 'tx> From<Leaf<'tx>> for Option<KVPair<'b, 'tx>> {
+impl<'tx> From<Leaf<'tx>> for Option<KVPair<'_, 'tx>> {
     fn from(val: Leaf<'tx>) -> Self {
         match val {
             Leaf::Bucket(_, _) => None,

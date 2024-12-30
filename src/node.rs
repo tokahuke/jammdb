@@ -528,7 +528,7 @@ impl<'a> Leaf<'a> {
 // Change to DataType
 pub(crate) type NodeType = u8;
 
-impl<'n> Node<'n> {
+impl Node<'_> {
     pub(crate) const TYPE_DATA: NodeType = 0x00;
     pub(crate) const TYPE_BUCKET: NodeType = 0x01;
 }

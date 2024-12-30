@@ -76,12 +76,13 @@ impl<'a> ToBytes<'a> for &Bytes<'a> {
 #[derive(Debug, Clone)]
 pub enum Bytes<'a> {
     Slice(&'a [u8]),
+    #[allow(clippy::enum_variant_names)]
     Bytes(bytes::Bytes),
     Vec(Rc<Vec<u8>>),
     String(Rc<String>),
 }
 
-impl<'a> Bytes<'a> {
+impl Bytes<'_> {
     pub fn size(&self) -> usize {
         match self {
             Self::Slice(s) => s.len(),
@@ -92,7 +93,7 @@ impl<'a> Bytes<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Bytes<'a> {
+impl AsRef<[u8]> for Bytes<'_> {
     fn as_ref(&self) -> &[u8] {
         match self {
             Self::Slice(s) => s,
@@ -103,7 +104,7 @@ impl<'a> AsRef<[u8]> for Bytes<'a> {
     }
 }
 
-impl<'a> Ord for Bytes<'a> {
+impl Ord for Bytes<'_> {
     fn cmp(&self, other: &Self) -> Ordering {
         let a = self.as_ref();
         let b = other.as_ref();
@@ -111,13 +112,13 @@ impl<'a> Ord for Bytes<'a> {
     }
 }
 
-impl<'a> PartialOrd for Bytes<'a> {
+impl PartialOrd for Bytes<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'a> PartialEq for Bytes<'a> {
+impl PartialEq for Bytes<'_> {
     fn eq(&self, other: &Self) -> bool {
         let a = self.as_ref();
         let b = other.as_ref();
@@ -125,9 +126,9 @@ impl<'a> PartialEq for Bytes<'a> {
     }
 }
 
-impl<'a> Eq for Bytes<'a> {}
+impl Eq for Bytes<'_> {}
 
-impl<'a> Hash for Bytes<'a> {
+impl Hash for Bytes<'_> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         let a = self.as_ref();
         a.hash(state);

@@ -23,10 +23,11 @@ use crate::{
 
 pub(crate) enum TxLock<'tx> {
     Rw(MutexGuard<'tx, File>),
+    #[allow(dead_code)] // "field `0` is never read" but need it for RAII
     Ro(RwLockReadGuard<'tx, ()>),
 }
 
-impl<'tx> TxLock<'tx> {
+impl TxLock<'_> {
     fn writable(&self) -> bool {
         match self {
             Self::Rw(_) => true,
@@ -277,7 +278,7 @@ impl<'tx> Tx<'tx> {
     }
 }
 
-impl<'tx> TxInner<'tx> {
+impl TxInner<'_> {
     fn write_data(&mut self, freelist: &mut TxFreelist) -> Result<()> {
         if let TxLock::Rw(file) = &mut self.lock {
             // Write the freelist to a new page
@@ -325,8 +326,11 @@ impl<'tx> TxInner<'tx> {
             {
                 let mut buf = vec![0; self.db.inner.pagesize as usize];
 
-                #[allow(clippy::cast_ptr_alignment)]
-                let page = unsafe { &mut *(&mut buf[0] as *mut u8 as *mut Page) };
+                // Safety: buffer is big enough to contain a page (see `assert!`)
+                let page = unsafe {
+                    assert!(buf.len() >= std::mem::size_of::<Page>());
+                    &mut *(buf.as_mut_ptr() as *mut Page)
+                };
                 let meta_page_id = u64::from(self.meta.meta_page == 0);
                 page.id = meta_page_id;
                 page.page_type = Page::TYPE_META;
@@ -474,7 +478,7 @@ impl<'tx> TxInner<'tx> {
     }
 }
 
-impl<'tx> Drop for TxInner<'tx> {
+impl Drop for TxInner<'_> {
     fn drop(&mut self) {
         if !self.lock.writable() {
             let mut open_txs = self.db.inner.open_ro_txs.lock().unwrap();

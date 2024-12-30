@@ -492,7 +492,7 @@ impl<'b> InnerBucket<'b> {
         }
     }
 
-    fn new_child<'a>(&'a mut self, name: Bytes<'b>) -> RefMut<InnerBucket<'b>> {
+    fn new_child(&mut self, name: Bytes<'b>) -> RefMut<InnerBucket<'b>> {
         self.dirty = true;
         let n = Node::new(0, Page::TYPE_LEAF, self.pages.pagesize);
         let mut page_node_ids = HashMap::new();
